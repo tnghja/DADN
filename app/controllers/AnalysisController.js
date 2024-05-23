@@ -2,46 +2,50 @@ const axios = require("axios");
 const adafruit = require("../config/adafruit.config");
 const { Log } = require("../models/models")
 
-const storeData = (req, res) => {
-    axios
-    .get(adafruit.url)
-    .then((response) => {
-        const data = response.data;
-        let light = [];
-        let temperature = [];
-        let power = [];
-
-        data.forEach((item) => {
-            if (item.name === 'data_anhsang') {
-                light.push(item.last_value);
-                light.push(item.last_value_at);
-            }
-            if (item.name === 'data_nhietdo') {
-                temperature.push(item.last_value);
-                temperature.push(item.last_value_at);
-            }
-            if (item.name === 'data_diennang') {
-                power.push(item.last_value);
-                power.push(item.last_value_at);
-            }
-        });
-
-        Log.create({
-            date: light[1] || temperature[1] || power[1], 
-            light: light[0],
-            temperature: temperature[0],
-            power: power[0]
-        }).then(() => {
-            console.log("Data stored successfully");
-        }).catch((error) => {
-            console.error("Error storing data:", error);
-        });
-    })
-    .catch((error) => {
-        console.error("Error fetching data:", error);
-    });
+async function fetchAdafruitData(feedName) {
+    const url = `https://io.adafruit.com/api/v2/${adafruit.username}/feeds/${feedName}/data`;
+    const headers = {
+        'X-AIO-Key': adafruit.feedKey
+    };
+    try {
+        const response = await axios.get(url, { headers });
+        return response.data[0]; // Assuming we want the latest data
+    } catch (error) {
+        console.error(`Error fetching data from Adafruit IO feed ${feedName}:`, error);
+        throw error;
+    }
 }
 
+const storeData = async (req, res) => {
+    try {
+        let light, temperature, power, timestamp;
+        for (const feedName of adafruit.feedNames ) {
+            const adafruitData = await fetchAdafruitData(feedName);
+            if (feedName === 'bbc-brightness') {
+                light = adafruitData.value;
+                timestamp = adafruitData.created_at;
+            } else if (feedName === 'bbc-temp') {
+                temperature = adafruitData.value;
+                timestamp = adafruitData.created_at;
+            } else if (feedName === 'bbc-movement') {
+                power = adafruitData.value;
+                timestamp = adafruitData.created_at;
+            }
+        }
+
+        console.log(light, temperature, power, timestamp);
+         Log.create({
+            time: timestamp,
+            light: light,
+            temperature: temperature,
+            power: power
+        });
+
+        console.log('Data stored successfully');
+    } catch (error) {
+        console.error('An error occurred:', error);
+    }
+};
 const home = async (req,res) => {
     try {
         const data = await Log.find()
@@ -54,7 +58,7 @@ const home = async (req,res) => {
     }
 }
 
-setInterval(storeData, 25000)
+ setInterval(storeData, 25000)
 module.exports = {
     home
 }
