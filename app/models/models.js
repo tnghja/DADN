@@ -15,11 +15,11 @@ const RoomSchema = new mongoose.Schema({
 });
 
 const DeviceSchema = new mongoose.Schema({
-  pin: { type: String, required: true },
+  device_id : { type: String, required: true },
   type: { type: String, required: true },
   deviceName: { type: String, required: true },
-  username: { type: String, required: true },
-  room_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Room' },
+  room_id: { type: String, ref: 'Room' },
+  status: { type: Boolean, default: false },
 });
 
 const LightSchema = new mongoose.Schema({
@@ -43,14 +43,37 @@ const LightTimerSchema = new mongoose.Schema({
   light_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Light' },
 });
 
-const LogSchema = new mongoose.Schema({
-  temperature: Number,
-  light: Number,
+const EnergyLogSchema = new mongoose.Schema({
   power: Number,
   date: { type: Date, default: Date.now },
   time: { type: String, required: true },
-  room_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Room' },
+  room_id: { type: String, ref: 'Room' },
+  device_id: { type: String, ref: 'Device' },
 });
+
+const TemperatureLogSchema = new mongoose.Schema({
+  temperature: Number,
+  date: { type: Date, default: Date.now },
+  time: { type: String, required: true },
+  room_id: { type: String, ref: 'Room' },
+  device_id: { type: String, ref: 'Device' },
+});
+
+const LightLogSchema = new mongoose.Schema({
+  light: Number,
+  date: { type: Date, default: Date.now },
+  time: { type: String, required: true },
+  room_id: { type: String, ref: 'Room' },
+  device_id: { type: String, ref: 'Device' },
+});
+
+const calendarSchema = new mongoose.Schema({
+  id: Number,
+  title: String,
+  room: String,
+  building: String,
+  date: Date
+})
 
 
 
@@ -58,16 +81,19 @@ const Account = mongoose.model("Account", AccountSchema);
 const Device = mongoose.model("Device", DeviceSchema);
 const Room = mongoose.model("Room", RoomSchema);
 const Area = mongoose.model("Area", AreaSchema);
-const Light = mongoose.model("Light", LightSchema);
+const LightLog = mongoose.model("LightLog", LightLogSchema);
 const LightTimer = mongoose.model("LightTimer", LightTimerSchema);
-const Log = mongoose.model("Log", LogSchema);
-
+const EnergyLog = mongoose.model("EnergyLog", EnergyLogSchema);
+const TempatureLog = mongoose.model("TempatureLog", TemperatureLogSchema);
+const Calendar = mongoose.model("Calendar", calendarSchema);
 module.exports = {
   Account,
   Device,
   Room,
   Area,
-  Light,
   LightTimer,
-  Log,
+  LightLog,
+  EnergyLog,
+  TempatureLog,
+  Calendar
 };

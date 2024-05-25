@@ -1,6 +1,6 @@
 const axios = require("axios");
 const adafruit = require("../config/adafruit.config");
-const { Log } = require("../models/models")
+const { EnergyLog, TempatureLog, LightLog } = require("../models/models")
 
 async function fetchAdafruitData(feedName) {
     const url = `https://io.adafruit.com/api/v2/${adafruit.username}/feeds/${feedName}/data`;
@@ -24,22 +24,29 @@ const storeData = async (req, res) => {
             if (feedName === 'bbc-brightness') {
                 light = adafruitData.value;
                 timestamp = adafruitData.created_at;
+                LightLog.create({
+                    time: timestamp,
+                    light: light,
+                    room_id : "room_001"
+                });
             } else if (feedName === 'bbc-temp') {
                 temperature = adafruitData.value;
                 timestamp = adafruitData.created_at;
-            } else if (feedName === 'bbc-movement') {
+                TempatureLog.create({
+                    time: timestamp,
+                    light: light,
+                    room_id : "room_001"
+                });
+            } else if (feedName === 'bbc-electronic') {
                 power = adafruitData.value;
                 timestamp = adafruitData.created_at;
+                EnergyLog.create({
+                    time: timestamp,
+                    power: power,
+                    room_id : "room_001"
+                });
             }
         }
-
-        console.log(light, temperature, power, timestamp);
-         Log.create({
-            time: timestamp,
-            light: light,
-            temperature: temperature,
-            power: power
-        });
 
         console.log('Data stored successfully');
     } catch (error) {
@@ -48,8 +55,8 @@ const storeData = async (req, res) => {
 };
 const home = async (req,res) => {
     try {
-        const data = await Log.find()
-        res.json(data)
+        const data = await EnergyLog.find()
+        return res.json(data)
     }
     catch (error) {
         res.json({
@@ -58,7 +65,7 @@ const home = async (req,res) => {
     }
 }
 
- setInterval(storeData, 25000)
+setInterval(storeData, 5000)
 module.exports = {
-    home
+   home
 }
