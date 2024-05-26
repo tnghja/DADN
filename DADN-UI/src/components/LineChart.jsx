@@ -1,12 +1,58 @@
 import { ResponsiveLine } from "@nivo/line";
 import { useTheme } from "@mui/material";
 import { tokens } from "../theme";
-import { mockLineData as data } from "../data/mockData";
+import React, { useCallback, useEffect, useState } from "react";
+import axios from 'axios';
 
 const LineChart = ({ isCustomLineColors = false, isDashboard = false }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-
+  const [data, setData] = useState([]);
+  const formatData = useCallback((data) => {
+    const formattedData = new Map();
+    data.forEach(log => {
+      const building = log.building_id;
+      const month = new Date(log.date).getMonth();
+      const monthName = months[month];
+      if (!formattedData.has(building)) {
+        formattedData.set(building, {
+          id: building,
+          color: buildingColors[building],
+          data: []
+        })
+      }
+      const existingData = formattedData.get(building).data.find(dataPoint => dataPoint.x === monthName);
+    if (existingData) {
+      existingData.y += log.power;
+    } else {
+      formattedData.get(building).data.push({
+        x: monthName,
+        y: log.power
+      });
+    }
+    });
+    return Array.from(formattedData.values());
+    // eslint-disable-next-line
+  }, [])
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const buildingColors = {
+    "H1": "#4cceac",
+    "H2": "#a4a9fc",
+    "H3": "#4cceac",
+    "H6": "#db4f4a"
+  };
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get('http://localhost:3001/home');
+        const data = response.data;
+        setData(formatData(data));
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchData();
+  }, [formatData]);
   return (
     <ResponsiveLine
       data={data}
