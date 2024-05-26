@@ -9,8 +9,16 @@ const getAllDevices =  async (req, res) => {
       res.status(500).json({ error: 'An error occurred while fetching devices' });
     }
   };
-
+const getAllEvents = async (req, res) => {
+  try {
+    const roomId = req.params.id;
+    const events = await roomService.getAllEvents(roomId);
+    res.status(200).json(events);
+  } catch (error) {
+    res.status(500).json({ error: 'An error occurred while fetching events' });
+  }
+};
 module.exports = {
-  getAllDevices
+  getAllDevices,getAllEvents
 }
   
