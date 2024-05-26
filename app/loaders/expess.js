@@ -11,7 +11,7 @@ async function expressLoader({ app }) {
   app.use(logger("dev"));
   app.use(bodyPraser.json());
   app.use(cors());
-  app.use("/api/event", eventRouter)
+  app.use("/api/event", eventRouter);
   app.use("/api/device",deviceRouter);
   app.use("/api/log",logRouter);
   app.use("/api/room", roomRouter);

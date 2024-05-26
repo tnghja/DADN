@@ -9,17 +9,16 @@ const getAllDevices =  async (req, res) => {
       res.status(500).json({ error: 'An error occurred while fetching devices' });
     }
   };
-const getAllEvents = async (room_id) => {
+const getAllEvents = async (req, res) => {
   try {
-    const currentDate = new Date();
-    const events = await Calendar.find({ room: room_id, date: { $gt: currentDate } });
-    return events;
+    const roomId = req.params.id;
+    const events = await roomService.getAllEvents(roomId);
+    res.status(200).json(events);
   } catch (error) {
-    console.error("Error fetching devices: ", error);
-    throw error;
+    res.status(500).json({ error: 'An error occurred while fetching events' });
   }
 };
 module.exports = {
-  getAllDevices
+  getAllDevices,getAllEvents
 }
   
