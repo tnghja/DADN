@@ -72,7 +72,7 @@ const calendarSchema = new mongoose.Schema({
   title: String,
   room: String,
   building: String,
-  date: Date
+  date: String
 })
 
 
